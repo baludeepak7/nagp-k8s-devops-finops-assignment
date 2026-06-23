@@ -6,3 +6,4 @@ metadata:
 data:
   POSTGRES_DB: nagpdb
   POSTGRES_USER: nagpuser
+  PGDATA: /var/lib/postgresql/data/pgdata

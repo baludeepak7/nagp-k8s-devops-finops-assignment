@@ -102,12 +102,3 @@ Each API container requests `100m` CPU and `128Mi` memory and is capped at `500m
 Collect `kubectl top pods -n nagp` and `kubectl top nodes` during idle, normal, and controlled peak tests. Retain a time series in production through Cloud Monitoring or Prometheus. Set CPU requests from a representative high percentile with headroom, because undersized CPU requests cause aggressive HPA behavior and poor scheduling. Set memory requests near sustained working-set demand and limits safely above peak, because exceeding a memory limit causes an OOM kill. Re-test latency and error rate after every change.
 
 The exact assignment values conflict at the theoretical maximum: eight API replicas at a `500m` CPU limit consume all `4 CPU` of quota, leaving no CPU-limit allowance for PostgreSQL. The four-replica baseline fits. Under peak scaling, inspect namespace events; then either raise the quota based on approved budget, lower justified limits after measurement, or reduce the maximum replica count. Quota should be treated as an intentional financial guardrail, not a substitute for capacity planning.
-
-## 14. Cleanup Strategy
-
-Delete the `nagp` namespace to remove namespaced workloads, Services, Ingress, Secrets, ConfigMaps, and PVC objects. Then delete the GKE cluster. Before cleanup, export required evidence and verify the storage reclaim policy. After deletion, confirm that load-balancer forwarding rules, external IPs, disks, snapshots, image tags, and logging retention no longer create unwanted charges.
-
-```bash
-kubectl delete namespace nagp
-gcloud container clusters delete nagp-cluster --zone asia-south1-a
-```

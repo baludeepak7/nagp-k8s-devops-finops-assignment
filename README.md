@@ -7,9 +7,9 @@ The project contains a Node.js/Express API, PostgreSQL database, Docker build, a
 ## Submission Links
 
 - Repository: `https://github.com/baludeepak7/nagp-k8s-devops-finops-assignment`
-- Docker Hub: `https://hub.docker.com/r/deepakb/nagp-product-api`
-- Product API: `http://<GKE_INGRESS_EXTERNAL_IP>/products`
-- Health API: `http://<GKE_INGRESS_EXTERNAL_IP>/health`
+- Docker Hub: `https://hub.docker.com/r/deepakbalu/nagp-product-api`
+- Product API: `http://34.98.89.237/products`
+- Health API: `http://34.98.89.237/health`
 - Screen recording: ``
 
 
@@ -128,8 +128,8 @@ Update the image field in `k8s/api-deployment.yaml`, then run:
 
 ```bash
 docker login
-docker build -t YOUR_DOCKERHUB_USERNAME/nagp-product-api:v1 .
-docker push YOUR_DOCKERHUB_USERNAME/nagp-product-api:v1
+docker build -t deepakbalu/nagp-product-api:v1 .
+docker push deepakbalu/nagp-product-api:v1
 ```
 
 Optional local container test:
@@ -155,11 +155,17 @@ gcloud services enable container.googleapis.com compute.googleapis.com
 
 gcloud container clusters create nagp-cluster \
   --zone asia-south1-a \
-  --num-nodes 1 \
+  --num-nodes 2 \
   --machine-type e2-medium \
   --disk-size 20 \
   --enable-ip-alias \
   --release-channel regular
+
+gcloud container node-pools create assignment-pool \
+  --cluster nagp-cluster \
+  --zone asia-south1-a \
+  --machine-type e2-medium \
+  --num-nodes 2
 
 gcloud container clusters get-credentials nagp-cluster --zone asia-south1-a
 
@@ -228,8 +234,8 @@ GKE can take several minutes to provision the external HTTP load balancer and ba
 kubectl get ingress product-api-ingress -n nagp -w
 kubectl get ingress product-api-ingress -n nagp -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
 
-curl http://<INGRESS_EXTERNAL_IP>/health
-curl http://<INGRESS_EXTERNAL_IP>/products
+curl http://34.98.89.237/health
+curl http://34.98.89.237/products
 ```
 
 Expected result: `/health` reports `UP`, and `/products` returns eight rows.
@@ -240,7 +246,7 @@ Delete one API pod. The Deployment creates a replacement and maintains the desir
 
 ```bash
 kubectl get pods -n nagp
-kubectl delete pod <API_POD_NAME> -n nagp
+kubectl delete pod postgres-statefulset-0  -n nagp
 kubectl get pods -n nagp -w
 ```
 
@@ -250,7 +256,7 @@ Delete the PostgreSQL pod. The StatefulSet recreates `postgres-statefulset-0` an
 kubectl get pods -n nagp
 kubectl delete pod <POSTGRES_POD_NAME> -n nagp
 kubectl get pods -n nagp -w
-curl http://<INGRESS_EXTERNAL_IP>/products
+curl http://34.98.89.237/products
 ```
 
 The same eight records prove that data survived Pod replacement. Deleting the PVC is different: it removes the persistent data after the storage policy completes deletion.
@@ -263,10 +269,10 @@ For the demo, add `"version": "v2"` to the `/health` response, then build and pu
 docker build -t YOUR_DOCKERHUB_USERNAME/nagp-product-api:v2 .
 docker push YOUR_DOCKERHUB_USERNAME/nagp-product-api:v2
 
-kubectl set image deployment/product-api-deployment product-api=YOUR_DOCKERHUB_USERNAME/nagp-product-api:v2 -n nagp
+kubectl set image deployment/product-api-deployment product-api=deepakbalu/nagp-product-api:v2 -n nagp
 kubectl rollout status deployment/product-api-deployment -n nagp
 kubectl rollout history deployment/product-api-deployment -n nagp
-curl http://<INGRESS_EXTERNAL_IP>/health
+curl http://34.98.89.237/health
 ```
 
 The strategy permits one extra pod and one unavailable pod during rollout. Roll back if needed:
@@ -317,29 +323,3 @@ The HPA compares observed CPU usage with the API request of `100m`; its target i
 - **Separate node pools:** isolate stateless, stateful, and Spot workloads with labels, taints, tolerations, and suitable machine families.
 
 The assignment values contain a deliberate capacity tension: at eight API replicas their CPU limits total the entire `4 CPU` namespace quota. PostgreSQL also has a CPU limit, so the quota can reject the final HPA scale-up. The baseline is valid, but production tuning must either increase the quota from observed peak demand, reduce justified per-pod limits after testing, or set `maxReplicas` to the quota-feasible count. Confirm events with `kubectl describe hpa` and `kubectl get events -n nagp --sort-by=.lastTimestamp`.
-
-## Cleanup
-
-Deleting the namespace removes its workloads and PVC objects. Verify retention requirements before running it.
-
-```bash
-kubectl delete namespace nagp
-gcloud container clusters delete nagp-cluster --zone asia-south1-a
-```
-
-Also remove unused Docker Hub image tags and verify that GCP disks, snapshots, static IPs, and load-balancer resources have been released.
-
-## Screen Recording Checklist
-
-- Show the GitHub repository structure and key source/manifests.
-- Show the Docker Hub `v1` image.
-- Show the running GKE Standard cluster and nodes.
-- Run all Kubernetes object verification commands.
-- Open `/health` and `/products` through the Ingress external IP.
-- Show all eight product records.
-- Delete an API pod and show its replacement.
-- Delete the PostgreSQL pod and show data still exists.
-- Deploy `v2` and show rollout status/history and changed health output.
-- Generate load and show HPA/metrics behavior.
-- Show ResourceQuota, LimitRange, requests/limits, internal DB Service, and discuss the FinOps decisions.
-- Clean up the namespace and cluster after evidence is captured.

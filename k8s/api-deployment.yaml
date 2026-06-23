@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: product-api
-          image: YOUR_DOCKERHUB_USERNAME/nagp-product-api:v1
+          image: deepakbalu/nagp-product-api:v1
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -61,6 +61,8 @@ spec:
             capabilities:
               drop:
                 - ALL
+            runAsUser: 1000
+            runAsGroup: 1000
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
