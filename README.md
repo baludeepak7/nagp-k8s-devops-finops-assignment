@@ -10,7 +10,7 @@ The project contains a Node.js/Express API, PostgreSQL database, Docker build, a
 - Docker Hub: `https://hub.docker.com/r/deepakbalu/nagp-product-api`
 - Product API: `http://34.98.89.237/products`
 - Health API: `http://34.98.89.237/health`
-- Screen recording: ``
+- Screen recording: `https://drive.google.com/file/d/1-G5K-D0CMZDCN4u-FoThjYxy5gnI9ElM/view?usp=sharing`
 
 
 ## Architecture
