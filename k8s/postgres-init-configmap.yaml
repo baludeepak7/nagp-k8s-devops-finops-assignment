@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: nagp
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS products (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      category VARCHAR(100) NOT NULL,
+      price NUMERIC(10,2) NOT NULL
+    );
+
+    INSERT INTO products (name, category, price) VALUES
+      ('Laptop', 'Electronics', 75000.00),
+      ('Mouse', 'Accessories', 800.00),
+      ('Keyboard', 'Accessories', 1500.00),
+      ('Monitor', 'Electronics', 12000.00),
+      ('Desk Chair', 'Furniture', 8500.00),
+      ('Notebook', 'Stationery', 120.00),
+      ('Water Bottle', 'Lifestyle', 600.00),
+      ('Backpack', 'Travel', 2500.00);

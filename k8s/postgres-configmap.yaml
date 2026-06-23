@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: nagp
+data:
+  POSTGRES_DB: nagpdb
+  POSTGRES_USER: nagpuser

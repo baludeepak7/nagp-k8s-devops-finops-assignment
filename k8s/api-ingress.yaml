@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: product-api-ingress
+  namespace: nagp
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: product-api-service
+                port:
+                  number: 80
+          - path: /products
+            pathType: Exact
+            backend:
+              service:
+                name: product-api-service
+                port:
+                  number: 80
